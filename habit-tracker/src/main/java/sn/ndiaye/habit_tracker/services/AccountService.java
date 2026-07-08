@@ -36,6 +36,7 @@ public class AccountService {
     public List<Account> findAccounts(String username) {
         var matcher = ExampleMatcher.matching()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase()
                 .withIgnoreNullValues();
         var account = Account.builder().username(username).build();
         var example = Example.of(account, matcher);
@@ -53,5 +54,9 @@ public class AccountService {
         if (password != null)
             account.setPassword(password);
         return account;
+    }
+
+    public void deleteAccount(Account account) {
+        accountRepository.delete(account);
     }
 }
