@@ -3,6 +3,7 @@ package sn.ndiaye.habit_tracker.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+@ToString
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,6 +20,7 @@ public class Habit {
     @Column(name = "name")
     private String name;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "account_id")
     private Account owner;

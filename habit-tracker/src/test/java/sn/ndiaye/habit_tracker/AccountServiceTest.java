@@ -1,16 +1,17 @@
 package sn.ndiaye.habit_tracker;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import sn.ndiaye.habit_tracker.entities.Account;
 import sn.ndiaye.habit_tracker.services.AccountService;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
@@ -21,15 +22,15 @@ class AccountServiceTest {
 
     @Test
     void account_can_be_created() {
-        var account = makeAccount("New", "password");
+        var account = TestEntities.simpleAccount("New", "password");
         account = service.createAccount(account);
         assertThat(account.getId()).isNotNull();
     }
 
     @Test
     void new_account_cannot_register_taken_username() {
-        var account1 = makeAccount("New", "password");
-        var account2 = makeAccount("New", "password");
+        var account1 = TestEntities.simpleAccount("New", "password");
+        var account2 = TestEntities.simpleAccount("New", "password");
         service.createAccount(account1);
         assertThrows(IllegalArgumentException.class,
                 () -> service.createAccount(account2));
@@ -37,7 +38,7 @@ class AccountServiceTest {
 
     @Test
     void only_existing_id_can_find_accounts() {
-        var account = makeAccount("New", "Password");
+        var account = TestEntities.simpleAccount("New", "Password");
         service.createAccount(account);
         var id = account.getId();
         assertThat(service.getAccount(id)).isEqualTo(account);
@@ -47,9 +48,9 @@ class AccountServiceTest {
 
     @Test
     void a_list_of_filtered_accounts_can_be_obtained() {
-        var account1 = makeAccount("New", "Password");
-        var account2 = makeAccount("Old", "Password");
-        var account3 = makeAccount("Dead", "Password");
+        var account1 = TestEntities.simpleAccount("New", "Password");
+        var account2 = TestEntities.simpleAccount("Old", "Password");
+        var account3 = TestEntities.simpleAccount("Dead", "Password");
         service.createAccount(account1);
         service.createAccount(account2);
         service.createAccount(account3);
@@ -64,27 +65,32 @@ class AccountServiceTest {
 
     @Test
     void account_cannot_change_username_to_an_existing_one() {
-        var account = makeAccount("New", "Password");
+        var account = TestEntities.simpleAccount("New", "Password");
         service.createAccount(account);
         assertThrows(IllegalArgumentException.class, () ->
-                service.updateAccount(account, "New", "Password"));
+                service.updateAccount(account.getId(), "New", "Password"));
     }
 
     @Test
     void account_infos_can_be_modified() {
-        var account = makeAccount("New", "Password");
+        var account = TestEntities.simpleAccount("New", "Password");
         service.createAccount(account);
-        service.updateAccount(account, "Old", "MoreSecure");
+        service.updateAccount(account.getId(), "Old", "MoreSecure");
         assertThat(account.getUsername()).isEqualTo("Old");
         assertThat(account.getPassword()).isEqualTo("MoreSecure");
     }
 
-
-    private Account makeAccount(String username, String password) {
-        return Account.builder()
-                .username(username)
-                .password(password)
-                .build();
+    @Test
+    void an_account_can_only_save_unused_habit_name() {
+        var account = TestEntities.simpleAccount("New", "Password");
+        service.createAccount(account);
+        var napHabit = TestEntities.simpleHabit("Nap");
+        var napHabit2 = TestEntities.simpleHabit("Nap");
+        var jogHabit = TestEntities.simpleHabit("Jog");
+        var accountId = account.getId();
+        service.registerHabit(accountId, napHabit);
+        assertThrows(IllegalArgumentException.class, () ->
+                service.registerHabit(accountId, napHabit2));
+        assertDoesNotThrow(() -> service.registerHabit(accountId, jogHabit));
     }
-
 }

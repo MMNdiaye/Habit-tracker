@@ -6,6 +6,7 @@ import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.ndiaye.habit_tracker.entities.Account;
+import sn.ndiaye.habit_tracker.entities.Habit;
 import sn.ndiaye.habit_tracker.repositories.AccountRepository;
 
 import java.util.List;
@@ -44,7 +45,8 @@ public class AccountService {
     }
 
     @Transactional
-    public Account updateAccount(Account account, String username, String password) {
+    public void updateAccount(UUID accountId, String username, String password) {
+        var account = getAccount(accountId);
         if (username != null)
             if (accountRepository.existsByUsername(username))
                 throw new IllegalArgumentException("The username " + username + " is already taken");
@@ -53,10 +55,19 @@ public class AccountService {
 
         if (password != null)
             account.setPassword(password);
-        return account;
     }
 
-    public void deleteAccount(Account account) {
-        accountRepository.delete(account);
+    public void deleteAccount(UUID accountId) {
+        accountRepository.delete(getAccount(accountId));
+    }
+
+    @Transactional
+    public void registerHabit(UUID accountId, Habit habit) {
+        var account = getAccount(accountId);
+        var registeredHabits = account.getHabits();
+        for (var regHabit : registeredHabits)
+            if (regHabit.getName().equals(habit.getName()))
+                throw new IllegalArgumentException("Habit with this name is already registered");
+        account.registerHabit(habit);
     }
 }

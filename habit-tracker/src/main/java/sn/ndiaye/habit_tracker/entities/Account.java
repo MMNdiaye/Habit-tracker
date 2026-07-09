@@ -3,6 +3,7 @@ package sn.ndiaye.habit_tracker.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,18 @@ public class Account {
     @Column(name = "password")
     private String password;
 
-    @OneToMany(mappedBy = "owner")
-    private List<Habit> habits;
+    @Builder.Default
+    @OneToMany(mappedBy = "owner", orphanRemoval = true,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Habit> habits = new ArrayList<>();
+
+    public void registerHabit(Habit habit) {
+        habits.add(habit);
+        habit.setOwner(this);
+    }
+
+    public void deleteHabit(Habit habit) {
+        habits.remove(habit);
+        habit.setOwner(null);
+    }
 }
