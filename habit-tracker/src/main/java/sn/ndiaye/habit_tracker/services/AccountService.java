@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import sn.ndiaye.habit_tracker.entities.Account;
 import sn.ndiaye.habit_tracker.entities.Habit;
 import sn.ndiaye.habit_tracker.repositories.AccountRepository;
+import sn.ndiaye.habit_tracker.repositories.HabitRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Service
 public class AccountService {
     private AccountRepository accountRepository;
+    private HabitRepository habitRepository;
 
     public Account createAccount(Account account) {
         String username = account.getUsername();
@@ -41,7 +43,7 @@ public class AccountService {
                 .withIgnoreNullValues();
         var account = Account.builder().username(username).build();
         var example = Example.of(account, matcher);
-        return  accountRepository.findAll(example);
+        return accountRepository.findAll(example);
     }
 
     @Transactional
@@ -69,5 +71,46 @@ public class AccountService {
             if (regHabit.getName().equals(habit.getName()))
                 throw new IllegalArgumentException("Habit with this name is already registered");
         account.registerHabit(habit);
+    }
+
+    public List<Habit> getHabits(UUID accountId) {
+        var account = getAccount(accountId);
+        return List.copyOf(account.getHabits());
+    }
+
+    public Habit getHabit(UUID accountId, String habitName) {
+        return habitRepository.findByOwnerIdAndName(accountId, habitName)
+                .orElseThrow(() -> new NoSuchElementException("Habit not found"));
+    }
+
+    @Transactional
+    public void renameHabit(UUID accountId, String habitName, String newName) {
+        var account = getAccount(accountId);
+        var registeredHabits = account.getHabits();
+        Habit habit = null;
+        for (var regHabit : registeredHabits) {
+            if (regHabit.getName().equals(habitName))
+                habit = regHabit;
+            if (regHabit.getName().equals(newName))
+                throw new IllegalArgumentException("Habit with this name is already registered");
+        }
+        if (habit == null)
+            throw new NoSuchElementException("Habit not found");
+
+        habit.setName(newName);
+    }
+
+    @Transactional
+    public void deleteHabit(UUID accountId, String habitName){
+        var account = getAccount(accountId);
+        var registeredHabits = account.getHabits();
+        for (var regHabit : registeredHabits) {
+            if (regHabit.getName().equals(habitName)) {
+                account.deleteHabit(regHabit);
+                return;
+            }
+        }
+
+        throw new NoSuchElementException("Habit not found");
     }
 }

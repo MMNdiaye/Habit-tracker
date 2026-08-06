@@ -1,6 +1,5 @@
 package sn.ndiaye.habit_tracker;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -92,5 +91,35 @@ class AccountServiceTest {
         assertThrows(IllegalArgumentException.class, () ->
                 service.registerHabit(accountId, napHabit2));
         assertDoesNotThrow(() -> service.registerHabit(accountId, jogHabit));
+    }
+
+    @Test
+    void an_account_cannot_rename_a_habit_to_an_existing_one() {
+        var account = TestEntities.simpleAccount("New", "Password");
+        service.createAccount(account);
+        var jogHabit = TestEntities.simpleHabit("Jog");
+        var napHabit = TestEntities.simpleHabit("Nap");
+        service.registerHabit(account.getId(), jogHabit);
+        service.registerHabit(account.getId(), napHabit);
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.renameHabit(account.getId(), "Jog", "Nap");
+        });
+    }
+
+    @Test
+    void an_account_can_only_deletes_habit_it_owns() {
+        var account = TestEntities.simpleAccount("New", "password");
+        var altAccount = TestEntities.simpleAccount("Alt", "password");
+        service.createAccount(account);
+        service.createAccount(altAccount);
+
+        var jogHabit = TestEntities.simpleHabit("Jog");
+        account.registerHabit(jogHabit);
+        var napHabit = TestEntities.simpleHabit("Nap");
+        altAccount.registerHabit(napHabit);
+        service.deleteHabit(account.getId(), "Jog");
+        assertThrows(NoSuchElementException.class, () -> {
+            service.deleteHabit(account.getId(), "Nap");
+        });
     }
 }
