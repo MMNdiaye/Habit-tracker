@@ -1,7 +1,6 @@
 package sn.ndiaye.habit_tracker.repositories;
 
 import org.springframework.data.repository.CrudRepository;
-import sn.ndiaye.habit_tracker.entities.Account;
 import sn.ndiaye.habit_tracker.entities.Habit;
 
 import java.util.Optional;

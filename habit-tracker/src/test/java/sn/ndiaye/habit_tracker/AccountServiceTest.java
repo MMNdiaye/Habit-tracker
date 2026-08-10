@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import sn.ndiaye.habit_tracker.exceptions.AccountNotFoundException;
+import sn.ndiaye.habit_tracker.exceptions.AlreadyTakenUsernameException;
+import sn.ndiaye.habit_tracker.exceptions.DuplicateHabitNameException;
+import sn.ndiaye.habit_tracker.exceptions.HabitNotFoundException;
 import sn.ndiaye.habit_tracker.services.AccountService;
 
 import java.util.NoSuchElementException;
@@ -31,7 +35,7 @@ class AccountServiceTest {
         var account1 = TestEntities.simpleAccount("New", "password");
         var account2 = TestEntities.simpleAccount("New", "password");
         service.createAccount(account1);
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(AlreadyTakenUsernameException.class,
                 () -> service.createAccount(account2));
     }
 
@@ -41,7 +45,7 @@ class AccountServiceTest {
         service.createAccount(account);
         var id = account.getId();
         assertThat(service.getAccount(id)).isEqualTo(account);
-        assertThrows(NoSuchElementException.class,
+        assertThrows(AccountNotFoundException.class,
                 () -> service.getAccount(UUID.randomUUID()));
     }
 
@@ -66,7 +70,7 @@ class AccountServiceTest {
     void account_cannot_change_username_to_an_existing_one() {
         var account = TestEntities.simpleAccount("New", "Password");
         service.createAccount(account);
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(AlreadyTakenUsernameException.class, () ->
                 service.updateAccount(account.getId(), "New", "Password"));
     }
 
@@ -88,7 +92,7 @@ class AccountServiceTest {
         var jogHabit = TestEntities.simpleHabit("Jog");
         var accountId = account.getId();
         service.registerHabit(accountId, napHabit);
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(DuplicateHabitNameException.class, () ->
                 service.registerHabit(accountId, napHabit2));
         assertDoesNotThrow(() -> service.registerHabit(accountId, jogHabit));
     }
@@ -101,7 +105,7 @@ class AccountServiceTest {
         var napHabit = TestEntities.simpleHabit("Nap");
         service.registerHabit(account.getId(), jogHabit);
         service.registerHabit(account.getId(), napHabit);
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DuplicateHabitNameException.class, () -> {
             service.renameHabit(account.getId(), "Jog", "Nap");
         });
     }
@@ -118,7 +122,7 @@ class AccountServiceTest {
         var napHabit = TestEntities.simpleHabit("Nap");
         altAccount.registerHabit(napHabit);
         service.deleteHabit(account.getId(), "Jog");
-        assertThrows(NoSuchElementException.class, () -> {
+        assertThrows(HabitNotFoundException.class, () -> {
             service.deleteHabit(account.getId(), "Nap");
         });
     }
