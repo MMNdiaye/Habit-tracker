@@ -10,7 +10,6 @@ import sn.ndiaye.habit_tracker.exceptions.DuplicateHabitNameException;
 import sn.ndiaye.habit_tracker.exceptions.HabitNotFoundException;
 import sn.ndiaye.habit_tracker.services.AccountService;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,10 +119,9 @@ class AccountServiceTest {
         var jogHabit = TestEntities.simpleHabit("Jog");
         account.registerHabit(jogHabit);
         var napHabit = TestEntities.simpleHabit("Nap");
-        altAccount.registerHabit(napHabit);
+        account.registerHabit(napHabit);
         service.deleteHabit(account.getId(), "Jog");
-        assertThrows(HabitNotFoundException.class, () -> {
-            service.deleteHabit(account.getId(), "Nap");
-        });
+        assertThrows(HabitNotFoundException.class, () ->
+                service.deleteHabit(altAccount.getId(), "Nap"));
     }
 }
