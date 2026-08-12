@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -31,14 +32,6 @@ public class Account {
     @OneToMany(mappedBy = "owner", orphanRemoval = true,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Habit> habits = new ArrayList<>();
-
-    public void changeUsername(String username) {
-        this.username = username;
-    }
-
-    public void changePassword(String password) {
-        this.password = password;
-    }
 
     public void registerHabit(Habit habit) {
         if (hasHabit(habit.getName()))

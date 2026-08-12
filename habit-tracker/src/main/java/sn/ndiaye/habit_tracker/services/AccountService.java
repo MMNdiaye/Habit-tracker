@@ -55,10 +55,10 @@ public class AccountService {
             if (accountRepository.existsByUsername(username))
                 throw new AlreadyTakenUsernameException(username);
             else
-                account.changeUsername(username);
+                account.setUsername(username);
 
         if (password != null)
-            account.changePassword(password);
+            account.setPassword(password);
     }
 
     public void deleteAccount(UUID accountId) {
