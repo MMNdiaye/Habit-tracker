@@ -5,7 +5,7 @@ import lombok.Data;
 import sn.ndiaye.habit_tracker.utils.Password;
 
 @Data
-public class RegisterAccountDto {
+public class UpdateUserDto {
     @NotBlank
     private String username;
 

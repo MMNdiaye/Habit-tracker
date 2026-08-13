@@ -8,7 +8,7 @@ import sn.ndiaye.habit_tracker.entities.Habit;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-08-12T10:18:28+0000",
+    date = "2026-08-13T10:12:09+0000",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25 (Oracle Corporation)"
 )
 @Component
